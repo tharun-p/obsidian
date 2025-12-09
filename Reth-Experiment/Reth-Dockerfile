@@ -28,7 +28,7 @@ CMD ["node", \
      "--http", \
      "--http.addr=0.0.0.0", \
      "--http.port=8545", \
-     "--http.api=eth,net,web3,engine,admin", \
+     "--http.api=eth,net,web3,admin", \
      "--authrpc.addr=0.0.0.0", \
      "--authrpc.port=8551", \
      "--datadir=/data/reth"]
