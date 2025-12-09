@@ -3,8 +3,8 @@ FROM gcr.io/prysmaticlabs/prysm/beacon-chain:stable
 # Set working directory
 WORKDIR /app
 
-# Create data directories
-RUN mkdir -p /data/prysm && mkdir -p /data/logs
+# Create data directory
+RUN mkdir -p /data/prysm
 
 # Expose ports
 # 4000 - Beacon API (gRPC)
@@ -28,13 +28,7 @@ ENV PRYSM_DATADIR=/data/prysm
 # --http-host: HTTP host address
 # --monitoring-host: Monitoring host address
 # --accept-terms-of-use: Accept terms of use
-# Logging configuration:
-# --log-file: Log file path
-# --log-format: Log format (json or text)
-# --log-rotation-max-size: Maximum log file size in MB before rotation
-# --log-rotation-max-age: Maximum age in days before rotation
-# --log-rotation-max-backups: Maximum number of rotated log files to retain
-# --log-rotation-compress: Compress rotated log files
+# Logging: Handled by Docker's logging driver (configured in docker-compose.yml)
 CMD ["--mainnet", \
      "--datadir=/data/prysm", \
      "--jwt-secret=/data/reth/jwt.hex", \
@@ -43,11 +37,5 @@ CMD ["--mainnet", \
      "--rpc-port=4000", \
      "--http-host=0.0.0.0", \
      "--monitoring-host=0.0.0.0", \
-     "--accept-terms-of-use", \
-     "--log-file=/data/logs/prysm.log", \
-     "--log-format=json", \
-     "--log-rotation-max-size=200", \
-     "--log-rotation-max-age=7", \
-     "--log-rotation-max-backups=5", \
-     "--log-rotation-compress"]
+     "--accept-terms-of-use"]
 
