@@ -1,0 +1,53 @@
+FROM gcr.io/prysmaticlabs/prysm/beacon-chain:stable
+
+# Set working directory
+WORKDIR /app
+
+# Create data directories
+RUN mkdir -p /data/prysm && mkdir -p /data/logs
+
+# Expose ports
+# 4000 - Beacon API (gRPC)
+# 13000 - P2P TCP
+# 12000 - P2P UDP
+# 8080 - Monitoring/metrics
+EXPOSE 4000 13000/tcp 12000/udp 8080
+
+# Set data directory environment variable
+ENV PRYSM_DATADIR=/data/prysm
+
+# Default command for mainnet with RPC access
+# --mainnet: Run on Ethereum mainnet
+# --datadir: Data directory for blockchain data
+# --jwt-secret: Path to JWT secret file (Geth auto-generates this at /data/geth/jwt.hex)
+# --execution-endpoint: Geth Engine API endpoint
+#   NOTE: "geth" hostname requires both containers on same Docker network
+#   and Geth container named "geth". Adjust if using different setup.
+# --rpc-host: RPC host address
+# --rpc-port: RPC port
+# --http-host: HTTP host address
+# --monitoring-host: Monitoring host address
+# --accept-terms-of-use: Accept terms of use
+# Logging configuration:
+# --log-file: Log file path
+# --log-format: Log format (json or text)
+# --log-rotation-max-size: Maximum log file size in MB before rotation
+# --log-rotation-max-age: Maximum age in days before rotation
+# --log-rotation-max-backups: Maximum number of rotated log files to retain
+# --log-rotation-compress: Compress rotated log files
+CMD ["--mainnet", \
+     "--datadir=/data/prysm", \
+     "--jwt-secret=/data/geth/jwt.hex", \
+     "--execution-endpoint=http://geth:8551", \
+     "--rpc-host=0.0.0.0", \
+     "--rpc-port=4000", \
+     "--http-host=0.0.0.0", \
+     "--monitoring-host=0.0.0.0", \
+     "--accept-terms-of-use", \
+     "--log-file=/data/logs/prysm-geth.log", \
+     "--log-format=json", \
+     "--log-rotation-max-size=200", \
+     "--log-rotation-max-age=7", \
+     "--log-rotation-max-backups=5", \
+     "--log-rotation-compress"]
+

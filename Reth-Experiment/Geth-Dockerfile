@@ -1,0 +1,31 @@
+FROM ethereum/client-go:stable
+
+# Set working directory
+WORKDIR /app
+
+# Create data directory
+RUN mkdir -p /data/geth
+
+# Expose ports
+# 30303 - P2P networking (TCP and UDP)
+# 8545 - HTTP RPC
+# 8551 - Engine API (for Prysm communication)
+EXPOSE 30303/tcp 30303/udp 8545 8551
+
+# Set data directory environment variable
+ENV GETH_DATADIR=/data/geth
+
+# Default command for mainnet with RPC access
+# --http: Enable HTTP RPC server
+# --http.addr: Listen on all interfaces
+# --http.port: HTTP RPC port
+# --http.api: Enable APIs (eth, net, web3, engine, admin)
+# --authrpc.addr: Engine API address (for Prysm)
+# --authrpc.port: Engine API port
+# --authrpc.jwtsecret: JWT secret file (will be auto-generated if it doesn't exist)
+# --datadir: Data directory for blockchain data
+# --mainnet: Run on Ethereum mainnet
+# Generate JWT secret if it doesn't exist, then start Geth
+ENTRYPOINT ["sh", "-c"]
+CMD ["if [ ! -f /data/geth/jwt.hex ]; then echo 'Generating JWT secret...' && mkdir -p /data/geth && openssl rand -hex 32 | tr -d '\\n' > /data/geth/jwt.hex && chmod 600 /data/geth/jwt.hex && echo 'JWT secret generated'; fi && exec geth --mainnet --datadir=/data/geth --http --http.addr=0.0.0.0 --http.port=8545 --http.api=eth,net,web3,engine,admin --authrpc.addr=0.0.0.0 --authrpc.port=8551 --authrpc.jwtsecret=/data/geth/jwt.hex"]
+

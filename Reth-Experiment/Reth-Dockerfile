@@ -1,0 +1,43 @@
+FROM ghcr.io/paradigmxyz/reth:latest
+
+# Set working directory
+WORKDIR /app
+
+# Create data directories
+RUN mkdir -p /data/reth && mkdir -p /data/logs
+
+# Expose ports
+# 30303 - P2P networking (TCP and UDP)
+# 8545 - HTTP RPC
+# 8551 - Engine API (for Prysm communication)
+EXPOSE 30303/tcp 30303/udp 8545 8551
+
+# Set data directory environment variable
+ENV RETH_DATADIR=/data/reth
+
+# Default command for mainnet with RPC access
+# --http: Enable HTTP RPC server
+# --http.addr=0.0.0.0: Listen on all interfaces
+# --http.api: Enable APIs (eth, net, web3, engine, admin)
+# --authrpc.addr: Engine API address (for Prysm)
+# --authrpc.port: Engine API port
+# Note: JWT secret will be auto-generated at /data/reth/jwt.hex if not specified
+# --datadir: Data directory for blockchain data
+# Logging configuration:
+# --log.file.directory: Log file directory
+# --log.file.name: Log file name prefix
+# --log.file.max-size: Maximum log file size in MB before rotation
+# --log.file.max-files: Maximum number of rotated log files to retain
+CMD ["node", \
+     "--http", \
+     "--http.addr=0.0.0.0", \
+     "--http.port=8545", \
+     "--http.api=eth,net,web3,engine,admin", \
+     "--authrpc.addr=0.0.0.0", \
+     "--authrpc.port=8551", \
+     "--datadir=/data/reth", \
+     "--log.file.directory=/data/logs", \
+     "--log.file.name=reth.log", \
+     "--log.file.max-size=200", \
+     "--log.file.max-files=5"]
+

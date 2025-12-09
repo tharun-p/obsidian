@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  geth:
+    build:
+      context: .
+      dockerfile: Geth-Dockerfile
+    container_name: geth
+    restart: unless-stopped
+    networks:
+      - eth-network
+    ports:
+      - "30303:30303/tcp"    # P2P TCP
+      - "30303:30303/udp"    # P2P UDP
+      - "8545:8545"          # HTTP RPC
+      - "8551:8551"          # Engine API (for Prysm)
+    volumes:
+      - /data:/data          # Mount 3TB storage - Geth data at /data/geth, logs at /data/logs/geth.log
+    environment:
+      - GETH_DATADIR=/data/geth
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
+        tag: "geth"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8545"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  prysm-geth:
+    build:
+      context: .
+      dockerfile: Prysm-Geth-Dockerfile
+    container_name: prysm-geth
+    restart: unless-stopped
+    networks:
+      - eth-network
+    ports:
+      - "4000:4000"          # Beacon API (gRPC)
+      - "13000:13000/tcp"    # P2P TCP
+      - "12000:12000/udp"    # P2P UDP
+      - "8080:8080"          # Monitoring/metrics
+    volumes:
+      - /data:/data          # Mount same volume - Prysm data at /data/prysm, logs at /data/logs/prysm-geth.log
+    environment:
+      - PRYSM_DATADIR=/data/prysm
+    # Note: Prysm handles its own logging via built-in log rotation in Dockerfile
+    # No need for Docker logging driver since Prysm writes directly to log files
+    depends_on:
+      geth:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+networks:
+  eth-network:
+    driver: bridge
+
